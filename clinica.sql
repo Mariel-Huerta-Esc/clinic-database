@@ -1,74 +1,112 @@
---
--- PostgreSQL database dump
---
-
-\restrict fHrIuzvKPBmtTl86yQBZD9n8VJtu6RjycRRbm7sZ55Lh39lhWyNVk5eiSbk5vrR
-
--- Dumped from database version 18.3
--- Dumped by pg_dump version 18.3
-
--- Started on 2026-04-15 21:31:53
-
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
-SET client_encoding = 'WIN1252';
-SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
-SET check_function_bodies = false;
-SET xmloption = content;
-SET client_min_messages = warning;
-SET row_security = off;
-
---
--- TOC entry 5 (class 2615 OID 24577)
--- Name: clinica; Type: SCHEMA; Schema: -; Owner: postgres
---
-
 CREATE SCHEMA clinica;
+-- creacion de dominios
+
+CREATE DOMAIN CLINICA.ID_PACIENTE AS CHAR(6) NOT NULL
+	CHECK (VALUE ~ '^[P]{1}[-]{1}\d{4}$'); --p-ooo1 (ejemplo del dato que admite)
+
+CREATE DOMAIN CLINICA.ID_MEESPECIALISTA AS CHAR(7) NOT NULL
+	CHECK (VALUE ~ '^[ME]{2}[-]{1}\d{4}$'); -- ME-123 4
+
+CREATE DOMAIN CLINICA.ID_CITA AS CHAR(7) NOT NULL
+	CHECK (VALUE ~ '^[CM]{2}[-]{1}\d{4}$');
 
 
-ALTER SCHEMA clinica OWNER TO postgres;
 
---
--- TOC entry 861 (class 1247 OID 24587)
--- Name: id_cita; Type: DOMAIN; Schema: clinica; Owner: postgres
---
+-- Aqui pk_idPaciente es nombre de la columna de la tabla
+-- CREACION DE TABLAS
+CREATE TABLE CLINICA.PACIENTE (
+	pk_idPaciente CLINICA.ID_PACIENTE, --este ultimo es el dominio que creamos (es el tipo de dato)
+	nombre VARCHAR(20) NOT NULL,
+	apellido VARCHAR(20) NOT NULL,
+	sexo CHAR(1) NOT NULL,
+	fechaNacimiento DATE NOT NULL,
+	ciudad VARCHAR(20) NOT NULL,
+	estado VARCHAR(20) NOT NULL,
+	telefono CHAR(10) UNIQUE,
+	PRIMARY KEY (pk_idPaciente)
+	
+	
+	
+);
+	
 
-CREATE DOMAIN clinica.id_cita AS character(7) NOT NULL
-	CONSTRAINT id_cita_check CHECK ((VALUE ~ '^[CM]{2}[-]{1}\d{4}$'::text));
-
-
-ALTER DOMAIN clinica.id_cita OWNER TO postgres;
-
---
--- TOC entry 856 (class 1247 OID 24583)
--- Name: id_especialista; Type: DOMAIN; Schema: clinica; Owner: postgres
---
-
-CREATE DOMAIN clinica.id_especialista AS character(7) NOT NULL
-	CONSTRAINT id_especialista_check CHECK ((VALUE ~ '^[ME]{2}[-]{1}\d{4}$'::text));
-
-
-ALTER DOMAIN clinica.id_especialista OWNER TO postgres;
-
---
--- TOC entry 851 (class 1247 OID 24579)
--- Name: id_paciente; Type: DOMAIN; Schema: clinica; Owner: postgres
---
-
-CREATE DOMAIN clinica.id_paciente AS character(6) NOT NULL
-	CONSTRAINT id_paciente_check CHECK ((VALUE ~ '^[P]{1}[-]{1}\d{4}$'::text));
+CREATE TABLE CLINICA.ESPECIALISTA (
+	pk_idEspecialista CLINICA.ID_MEESPECIALISTA,
+	nombre VARCHAR(20) NOT NULL,
+	apellido VARCHAR(20) NOT NULL,
+	sexo CHAR(1) NOT NULL, --CHAR(1) PORQUE SOLO PONDREMOS SI ES M (masculino), F (femenino)
+	fechaNacimiento DATE NOT NULL,
+	especialidad VARCHAR(30) NOT NULL,
+	PRIMARY KEY (pk_idEspecialista)
+);
 
 
-ALTER DOMAIN clinica.id_paciente OWNER TO postgres;
 
--- Completed on 2026-04-15 21:31:53
+CREATE TABLE CLINICA.CITA(
+	pk_idCita CLINICA.ID_CITA,
+	fk_idPaciente CLINICA.ID_PACIENTE, --FORIN KEY
+	fecha DATE NOT NULL,
+	hora TIME NOT NULL,
+	PRIMARY KEY (pk_idCita),
+	FOREIGN KEY (fk_idPaciente) REFERENCES CLINICA.PACIENTE(pk_idPaciente)
+	ON UPDATE CASCADE ON DELETE CASCADE
+);
 
---
--- PostgreSQL database dump complete
---
+CREATE TABLE CLINICA.AGENDAR_CITA(
+	fk_idCita CLINICA.ID_CITA,
+	fk_idEspecialista CLINICA.ID_MEESPECIALISTA,
+	consultorio VARCHAR(20) NOT NULL,
+	fechaCita DATE NOT NULL,
+	horaCita TIME NOT NULL,
+	turno VARCHAR(10) NOT NULL,
+	status VARCHAR(10) NOT NULL,
+	observaciones VARCHAR (100) NOT NULL,
+	PRIMARY KEY (fk_idCita, fk_idEspecialista), --la combinacion de ambos es unica
+	FOREIGN KEY (fk_idCita) REFERENCES CLINICA.CITA (pk_idCita)
+	ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (fk_idEspecialista) REFERENCES CLINICA.ESPECIALISTA (pk_idEspecialista)
+	ON UPDATE CASCADE ON DELETE CASCADE 
 
-\unrestrict fHrIuzvKPBmtTl86yQBZD9n8VJtu6RjycRRbm7sZ55Lh39lhWyNVk5eiSbk5vrR
+);
 
+
+
+CREATE TABLE CLINICA.EXPEDIENTE (
+	pk_idPaciente CLINICA.ID_PACIENTE,
+	tipoSangre VARCHAR(20) NOT NULL,
+	tipoAlergia VARCHAR(20) NOT NULL,
+	padecimientosCro VARCHAR(50) NOT NULL,
+	fechaCreacion TIMESTAMP NOT NULL,
+	PRIMARY KEY (pk_idPaciente),
+	FOREIGN KEY (pk_idPaciente) REFERENCES CLINICA.PACIENTE (pk_idPaciente)
+	ON UPDATE CASCADE ON DELETE CASCADE 
+);
+
+
+CREATE TABLE CLINICA.EXPEDIENTE_DIAGNOSTICO (
+	folio SERIAL NOT NULL,
+	fk_idEspecialista CLINICA.ID_MEESPECIALISTA,
+	fk_idPaciente CLINICA.ID_PACIENTE,
+	edad CHAR(3) NOT NULL,
+	peso CHAR(3) NOT NULL,
+	altura CHAR(4) NOT NULL,
+	IMC CHAR(5) NOT NULL,
+	nivelPeso CHAR(10) NOT NULL,
+	presionArterial CHAR(8) NOT NULL,
+	diagnostico VARCHAR(150) NOT NULL,
+	recetario VARCHAR(150) NOT NULL,
+	fechaCreacion TIMESTAMP NOT NULL,
+	PRIMARY KEY (folio),
+	FOREIGN KEY (fk_idEspecialista) REFERENCES CLINICA.ESPECIALISTA (pk_idEspecialista)
+	ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (fk_idPaciente) REFERENCES CLINICA.PACIENTE (pk_idPaciente)
+	ON UPDATE CASCADE ON DELETE CASCADE 
+
+);
+
+
+
+
+
+	
+	
