@@ -347,3 +347,18 @@ SELECT AVG(CAST (edad AS INT)) AS promedio_edad FROM CLINICA.EXPEDIENTE_DIAGNOST
 SELECT MAX(edad) AS edad_max, MIN(edad) AS edad_min, SUM(CAST (edad AS INT)) AS suma_edad,
  AVG(CAST (edad AS INT)) AS edad_promedio, COUNT(*) AS cantidad_diagnosticos
 FROM CLINICA.EXPEDIENTE_DIAGNOSTICO;
+
+
+-------------*- GROUP BY Y ORDER BY -*--------------------
+
+--nos extrae los id de los especialistas para que no se repitan
+SELECT fk_idEspecialista FROM CLINICA.EXPEDIENTE_DIAGNOSTICO GROUP BY fk_idEspecialista;
+
+SELECT COUNT(nivelPeso) AS cantidad_peso, nivelPeso FROM CLINICA.EXPEDIENTE_DIAGNOSTICO
+GROUP BY nivelPeso;
+
+
+
+-- Con AVG se calcula el promedio del peso de los pacientes, se convierte el dato de peso en INT, 
+SELECT fk_idPaciente, AVG( CAST (peso AS INT)) FROM CLINICA.EXPEDIENTE_DIAGNOSTICO
+GROUP BY fk_idPaciente ORDER BY fk_idPaciente;
