@@ -5,7 +5,7 @@ CREATE DOMAIN CLINICA.ID_PACIENTE AS CHAR(6) NOT NULL
 	CHECK (VALUE ~ '^[P]{1}[-]{1}\d{4}$'); --p-ooo1 (ejemplo del dato que admite)
 
 CREATE DOMAIN CLINICA.ID_MEESPECIALISTA AS CHAR(7) NOT NULL
-	CHECK (VALUE ~ '^[ME]{2}[-]{1}\d{4}$'); -- ME-123 4
+	CHECK (VALUE ~ '^[ME]{2}[-]{1}\d{4}$'); -- ME-1234
 
 CREATE DOMAIN CLINICA.ID_CITA AS CHAR(7) NOT NULL
 	CHECK (VALUE ~ '^[CM]{2}[-]{1}\d{4}$');
@@ -25,7 +25,7 @@ CREATE TABLE CLINICA.PACIENTE (
 	telefono CHAR(10) UNIQUE,
 	PRIMARY KEY (pk_idPaciente)
 	
-	
+	---- hasta aquí repasé 20-05-26 ------
 	
 );
 	
